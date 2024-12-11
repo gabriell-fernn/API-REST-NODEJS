@@ -1,7 +1,7 @@
 import { app } from './app'
 import { env } from './env'
 
-const port = env.PORT
+const port = env.PORT || 4000
 
 app
   .listen({
