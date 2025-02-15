@@ -68,6 +68,36 @@ export async function transactionsRoutes(app: FastifyInstance) {
     }
   )
 
+  app.delete(
+    '/:id',
+    {
+      preHandler: [checkSessionIdExists],
+    },
+    async (request, reply) => {
+      const deleteTransactionParamsSchema = z.object({
+        id: z.string().uuid(),
+      })
+
+      const { id } = deleteTransactionParamsSchema.parse(request.params)
+      const { sessionId } = request.cookies
+
+      const transaction = await knex('transactions')
+        .where({
+          session_id: sessionId,
+          id,
+        })
+        .first()
+
+      if (!transaction) {
+        return reply.status(404).send({ message: 'Transaction not found' })
+      }
+
+      await knex('transactions').where({ session_id: sessionId, id }).del()
+
+      return reply.status(204).send()
+    }
+  )
+
   app.post('/', async (request, reply) => {
     const createTransactionBodySchema = z.object({
       title: z.string(),
